@@ -227,6 +227,7 @@ fazer_deploy() {
   echo -e "  Ambiente:    $AMBIENTE_LABEL"
   echo -e "  Imagem:      $IMAGE_TAG"
   echo -e "  Task Def:    ${TASK_DEF}:${NOVA_REVISAO}"
+  exit 0
 }
 
 # ─── Fluxo de Rollback ────────────────────────────────────────────────────────
@@ -350,6 +351,7 @@ fazer_rollback() {
   log_ok "${NEGRITO}Rollback concluído com sucesso!${RESET}"
   echo -e "  Ambiente:  $AMBIENTE_LABEL"
   echo -e "  Task Def:  $TASK_DEF_ESCOLHIDA"
+  exit 0
 }
 
 # ─── Menu Principal ───────────────────────────────────────────────────────────
