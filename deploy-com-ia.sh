@@ -262,11 +262,10 @@ fazer_rollback() {
   echo ""
   echo -e "${NEGRITO}Revisões disponíveis para ${TASK_DEF}:${RESET}"
   echo ""
-  printf "  %-4s  %-8s  %-45s  %s\n" "Nº" "Revisão" "Imagem" "Registrada em"
-  echo "  ────  ────────  ─────────────────────────────────────────────  ────────────────────"
+  printf "  %-8s  %-45s  %s\n" "Revisão" "Imagem" "Registrada em"
+  echo "  ────────  ─────────────────────────────────────────────  ────────────────────"
 
   declare -A MAPA_REVISOES
-  INDICE=1
 
   while IFS= read -r arn; do
     REVISAO_NUM=$(echo "$arn" | awk -F':' '{print $NF}')
@@ -280,16 +279,12 @@ fazer_rollback() {
       --arg c "$CONTAINER_NAME" \
       '.containerDefinitions[] | select(.name == $c) | .image' 2>/dev/null || echo "N/A")
 
-    # Extrair apenas a tag da imagem para exibição resumida
-    IMAGEM_TAG=$(echo "$IMAGEM" | awk -F':' '{print $NF}')
     IMAGEM_RESUMIDA=$(echo "$IMAGEM" | sed 's|.*/||')  # remove o registry prefix
-
     DATA_REG=$(echo "$DETALHES" | jq -r '.registeredAt // "N/A"' | cut -c1-19 | tr 'T' ' ')
 
-    printf "  %-4s  %-8s  %-45s  %s\n" "[$INDICE]" "$REVISAO_NUM" "$IMAGEM_RESUMIDA" "$DATA_REG"
+    printf "  %-8s  %-45s  %s\n" "$REVISAO_NUM" "$IMAGEM_RESUMIDA" "$DATA_REG"
 
-    MAPA_REVISOES[$INDICE]="${TASK_DEF}:${REVISAO_NUM}"
-    INDICE=$((INDICE + 1))
+    MAPA_REVISOES[$REVISAO_NUM]="${TASK_DEF}:${REVISAO_NUM}"
   done < <(echo "$REVISOES" | jq -r '.[]')
 
   echo ""
@@ -304,12 +299,12 @@ fazer_rollback() {
   log_info "Revisão atualmente ativa no service: ${NEGRITO}${REVISAO_ATIVA}${RESET}"
   echo ""
 
-  # 5. Solicitar escolha
-  echo -e "Digite o número da revisão para rollback (1-$((INDICE-1))): \c"
+  # 5. Solicitar escolha pelo número da revisão
+  echo -e "Digite o número da revisão para rollback: \c"
   read -r escolha
 
   if [[ -z "${MAPA_REVISOES[$escolha]+_}" ]]; then
-    log_erro "Opção inválida: '$escolha'. Abortando."
+    log_erro "Revisão '$escolha' não encontrada ou inválida. Abortando."
     return 1
   fi
 
